@@ -791,7 +791,7 @@ class T5TransformerModel(FairseqEncoderDecoderModel):
         method overwrites the forward method definition without **kwargs.
         """
         so_in = source
-        print("AAAAAAAAAAAAAAAAAAAAA")
+        # print("AAAAAAAAAAAAAAAAAAAAA")
         # import pdb; pdb.set_trace()
         assert source is not None or src_tokens is not None
         # padding_mask is not none only when input is waveform
