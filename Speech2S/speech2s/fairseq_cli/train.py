@@ -264,7 +264,7 @@ def train(
     itr = iterators.GroupedIterator(
         itr,
         update_freq,
-        skip_remainder_batch=cfg.optimization.skip_remainder_batch,
+
     )
     if cfg.common.tpu:
         itr = utils.tpu_data_loader(itr)

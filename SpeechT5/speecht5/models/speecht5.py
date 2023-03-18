@@ -676,34 +676,35 @@ class T5TransformerModel(FairseqEncoderDecoderModel):
         else:
             max_num_embeddings = None
         
-        text_decoder_embed_tokens = build_embedding(
-            task.dicts["text"], args.decoder_embed_dim, max_num_embeddings
-        )        
+        # text_decoder_embed_tokens = build_embedding(
+        #     task.dicts["text"], args.decoder_embed_dim, max_num_embeddings
+        # )        
 
-        if args.share_input_output_embed:
-            text_encoder_embed_tokens = text_decoder_embed_tokens
-        else:
-            text_encoder_embed_tokens = build_embedding(
-                task.dicts["text"], args.encoder_embed_dim
-            )
+        # if args.share_input_output_embed:
+        #     text_encoder_embed_tokens = text_decoder_embed_tokens
+        # else:
+        #     text_encoder_embed_tokens = build_embedding(
+        #         task.dicts["text"], args.encoder_embed_dim
+        #     )
 
         speech_odim = args.speech_odim
         if "text" in task.dicts:
-            encoder = cls.build_encoder(args, task.dicts["text"], text_encoder_embed_tokens)
+          pass
+            # encoder = cls.build_encoder(args, task.dicts["text"], text_encoder_embed_tokens)
         else:
             encoder = cls.build_encoder(args)      
         decoder = cls.build_decoder(args)
 
-        text_encoder_prenet = cls.build_text_encoder_prenet(text_encoder_embed_tokens, args)
+        # text_encoder_prenet = cls.build_text_encoder_prenet(text_encoder_embed_tokens, args)
         speech_encoder_prenet = cls.build_speech_encoder_prenet(args)
 
-        text_decoder_prenet = cls.build_text_decoder_prenet(text_decoder_embed_tokens, args)
+        # text_decoder_prenet = cls.build_text_decoder_prenet(text_decoder_embed_tokens, args)
         if getattr(args, "sid_pooling_layer", None) == "decoder-las":
             speech_decoder_prenet = cls.build_speech_encoder_prenet(args)
         else:
             speech_decoder_prenet = cls.build_speech_decoder_prenet(speech_odim, args)
 
-        text_decoder_postnet = cls.build_text_decoder_postnet(text_decoder_embed_tokens, task.dicts['text'], args)
+        # text_decoder_postnet = cls.build_text_decoder_postnet(text_decoder_embed_tokens, task.dicts['text'], args)
         speech_decoder_postnet = cls.build_speech_decoder_postnet(speech_odim, args)
 
         if getattr(args, "sid_t5_postnet", False):
@@ -722,9 +723,9 @@ class T5TransformerModel(FairseqEncoderDecoderModel):
         return cls(
             args, 
             encoder, decoder, 
-            text_encoder_prenet, speech_encoder_prenet,
-            text_decoder_prenet, speech_decoder_prenet,
-            text_decoder_postnet, speech_decoder_postnet,
+            None, speech_encoder_prenet,
+            None, speech_decoder_prenet,
+            None, speech_decoder_postnet,
             speaker_decoder_postnet, speech_encoder_postnet,
         )
 
@@ -789,6 +790,9 @@ class T5TransformerModel(FairseqEncoderDecoderModel):
         argument in its input, which is not supported in torchscript. This
         method overwrites the forward method definition without **kwargs.
         """
+        so_in = source
+        print("AAAAAAAAAAAAAAAAAAAAA")
+        # import pdb; pdb.set_trace()
         assert source is not None or src_tokens is not None
         # padding_mask is not none only when input is waveform
         if source is None and padding_mask is None and not feature_only:
@@ -829,6 +833,7 @@ class T5TransformerModel(FairseqEncoderDecoderModel):
 
         # Encoder: T x B x C
         encoder_output = self.encoder(encoder_input, encoder_padding_mask, tgt_layer=tgt_enc_layer)
+        # import pdb; pdb.set_trace()
 
         if task_name is not None and task_name == 'speech_pretrain' and feature_only:
             return encoder_output["encoder_out"][0].transpose(0, 1)
@@ -915,6 +920,8 @@ class T5TransformerModel(FairseqEncoderDecoderModel):
         
         # SE predict masking to corresponding inputs and source speech replaces the prev_output_tokens as the input of decoder
         if task_name is not None and task_name == "s2s" and getattr(self.args, "se_decoder_input", "previous_target") == "source":
+            print(src_tokens.shape)
+            import pdb; pdb.set_trace()
             prev_output_tokens, tgt_mask = self.speech_decoder_prenet(src_tokens, src_lengths)
 
         # Decoder
@@ -1033,8 +1040,8 @@ class T5TransformerModel(FairseqEncoderDecoderModel):
         this additionally "upgrades" *state_dicts* from old checkpoints.
         """
         # self.prune_modules(model_cfg.modules_filter)
-        model_dict_size = self.text_decoder_postnet.output_projection.out_features
-        ckpt_dict_size = state_dict["text_decoder_postnet.output_projection.weight"].size(0)
+        model_dict_size =0# self.text_decoder_postnet.output_projection.out_features
+        ckpt_dict_size = 0#state_dict["text_decoder_postnet.output_projection.weight"].size(0)
         if model_dict_size != ckpt_dict_size:
             # reset dictionary-related modules, such as embedding table and encoder ctc embed
             logger.warn(f"not equal dictionary between model and checkpoint: {model_dict_size} vs {ckpt_dict_size}")

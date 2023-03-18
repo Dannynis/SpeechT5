@@ -69,22 +69,22 @@ class SpeechT5Criterion(FairseqCriterion):
             use_guided_attn_loss,
             num_heads_applied_guided_attn=num_heads_applied_guided_attn,
         )
-        self.text_criterion = SpeechtoTextLoss(
-            SpeechtoTextLossConfig,
-            task,
-            sentence_avg,
-            label_smoothing,
-            ignore_prefix_size,
-            report_accuracy,
-            ce_weight,
-            ctc_weight
-        )
-        self.text_pretrain_criterion = TextPretrainCriterion(
-            task,
-            sentence_avg,
-            bart_weight,
-            loss_weights,
-        )
+        # self.text_criterion = SpeechtoTextLoss(
+        #     SpeechtoTextLossConfig,
+        #     task,
+        #     sentence_avg,
+        #     label_smoothing,
+        #     ignore_prefix_size,
+        #     report_accuracy,
+        #     ce_weight,
+        #     ctc_weight
+        # )
+        # self.text_pretrain_criterion = TextPretrainCriterion(
+        #     task,
+        #     sentence_avg,
+        #     bart_weight,
+        #     loss_weights,
+        # )
         self.speech_pretrain_criterion = SpeechPretrainCriterion(
             task,
             sentence_avg,

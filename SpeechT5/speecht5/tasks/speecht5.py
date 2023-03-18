@@ -274,17 +274,18 @@ class SpeechT5Task(LegacyFairseqTask):
         self.dicts = dicts
         self.config = config
         self.t5_task = args.t5_task
+        print(self.t5_task)
         # Used for filter size
         if self.t5_task in ['s2t', 't2s', 's2s', 's2c']:
             self.max_pos = [self.args.max_speech_positions * 256]
         elif self.t5_task == 'pretrain':
             self.max_pos = [self.args.max_speech_positions * 256, self.args.max_text_positions]
 
-        self.mask_idx = self.dicts["text"].add_symbol("<mask>")
-        # add blank token for ctc
-        # if args.ctc_weight > 0:
-        self.blank_symbol_idx = self.dicts["text"].add_symbol("<ctc_blank>")
-        self.blank_symbol = "<ctc_blank>"
+        # self.mask_idx = self.dicts["text"].add_symbol("<mask>")
+        # # add blank token for ctc
+        # # if args.ctc_weight > 0:
+        # self.blank_symbol_idx = self.dicts["text"].add_symbol("<ctc_blank>")
+        # self.blank_symbol = "<ctc_blank>"
 
         # add mask token
         if hasattr(args, "iid_noise_target") and args.iid_noise_target:
@@ -310,10 +311,11 @@ class SpeechT5Task(LegacyFairseqTask):
             dicts["hubert"] = [Dictionary.load(f"{args.hubert_label_dir}/dict.{label}.txt") for label in args.hubert_labels]
             dicts["text"] = Dictionary.load(op.join(args.data, "dict.txt"))
         else:
-            if config is None:
-                dicts["text"] = Dictionary.load(op.join(args.data, "dict.txt"))
-            else:
-                dicts["text"] = Dictionary.load(op.join(args.data, config.vocab_filename))
+          pass
+            # if config is None:
+            #     dicts["text"] = Dictionary.load(op.join(args.data, "dict.txt"))
+            # else:
+            #     dicts["text"] = Dictionary.load(op.join(args.data, config.vocab_filename))
 
         return cls(args, dicts, config)
 
@@ -572,7 +574,7 @@ class SpeechT5Task(LegacyFairseqTask):
 
     @property
     def target_dictionary(self):
-        return self.dicts["text"]
+        return None#self.dicts["text"]
 
     @property
     def source_dictionary(self):

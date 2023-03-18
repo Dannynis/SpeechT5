@@ -139,10 +139,10 @@ class TexttoSpeechLoss(FairseqCriterion):
         if enc_dec_attn_loss is not None:
             logging_output['enc_dec_attn_loss'] = enc_dec_attn_loss.item()
 
-        if hasattr(model, 'text_encoder_prenet'):
-            logging_output["encoder_alpha"] = model.text_encoder_prenet.encoder_prenet[-1].alpha.item()
-            logging_output["decoder_alpha"] = model.speech_decoder_prenet.decoder_prenet[-1].alpha.item()
-        elif hasattr(model, "speech_encoder_prenet"):
+        # if hasattr(model, 'text_encoder_prenet'):
+        #     logging_output["encoder_alpha"] = model.text_encoder_prenet.encoder_prenet[-1].alpha.item()
+        #     logging_output["decoder_alpha"] = model.speech_decoder_prenet.decoder_prenet[-1].alpha.item()
+        if hasattr(model, "speech_encoder_prenet"):
             logging_output["decoder_alpha"] = model.speech_decoder_prenet.decoder_prenet[-1].alpha.item()
         else:
             if 'task' not in sample:

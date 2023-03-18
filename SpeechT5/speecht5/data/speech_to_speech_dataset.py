@@ -113,8 +113,8 @@ def logmelfilterbank(
     mel_basis = librosa.filters.mel(sr=sampling_rate, n_fft=fft_size, n_mels=num_mels, fmin=fmin, fmax=fmax)
 
     return np.log10(np.maximum(eps, np.dot(spc, mel_basis.T)))
-
-
+import tqdm
+import glob
 class SpeechToSpeechDataset(FairseqDataset):
     def __init__(
         self,
@@ -126,43 +126,75 @@ class SpeechToSpeechDataset(FairseqDataset):
         normalize: bool = False,
         reduction_factor: int = 1,
     ):
-        self.audio_root, self.audio_names, inds, tot, self.wav_sizes, self.tgt_audios, self.tgt_sizes, self.tgt_spkembs = load_audio(
-            manifest_path, max_keep_sample_size, min_keep_sample_size
-        )
+        # self.audio_root, self.audio_names, inds, tot, self.wav_sizes, self.tgt_audios, self.tgt_sizes, self.tgt_spkembs = load_audio(
+        #     manifest_path, max_keep_sample_size, min_keep_sample_size
+        # )
+        self.wavs = list(glob.glob(r'D:\ml+dl+dsp\Voice_Converter_CycleGAN_2\train_full\bibi\*.wav'))
         self.sample_rate = sample_rate
         self.shuffle = shuffle
-
+        print(len(self.wavs))
+        # self.wav_sizes = [160000]
+        # self.tgt_sizes = [160000]
+        self.wav_sizes = []
+        for x in tqdm.tqdm(self.wavs):
+            self.wav_sizes.append(len(librosa.load(x, sr=None)[0]))
+        self.tgt_sizes = self.wav_sizes
+        print(self.wav_sizes)
+        print(f"NUM OF WAVS {len(self.wav_sizes)}\n\n")
         self.normalize = normalize
         self.reduction_factor = reduction_factor
         logger.info(
             f"reduction_factor={reduction_factor}, normalize={normalize}"
         )
+    #
+    # def get_audio(self, index):
+    #     import soundfile as sf
+    #     import torch
+    #     # wav_fbank = []
+    #     # for name in [self.audio_names[index], self.tgt_audios[index]]:
+    #     #     wav_path = os.path.join(self.audio_root, name)
+    #     #     wav, cur_sample_rate = sf.read(wav_path)
+    #     #     wav = torch.from_numpy(wav).float()
+    #     #     fbank = logmelfilterbank(
+    #     #         wav.view(-1).cpu().numpy(), 16000
+    #     #     )
+    #     #     fbank = torch.from_numpy(fbank).float()
+    #     #     wav_fbank.append(wav)
+    #     #     wav_fbank.append(fbank)
+    #     # src_wav, src_fbank, tgt_wav, tgt_fbank = wav_fbank
+    #     return torch.ones(160000), torch.ones(1000,80), torch.ones(160000), torch.ones(1000,80),
+    #
+    # def __getitem__(self, index):
+    #     src_wav, src_fbank, tgt_wav, tgt_fbank = self.get_audio(index)
+    #     # spkembs = np.load(os.path.join(self.audio_root, self.tgt_spkembs[index]))
+    #     # spkembs = torch.from_numpy(spkembs).float()
+    #     # name = self.audio_names[index].replace("/", ".").replace(".wav", "") + "-" + self.tgt_audios[index].replace("/", ".").replace(".wav", "") + ".wav"
+    #     return {"id": 0, "source": src_wav, "target": tgt_fbank, "spkembs": torch.ones(512), "audio_name": 1, "tgt_name": src_wav}
+    #
 
     def get_audio(self, index):
         import soundfile as sf
-
-        wav_fbank = []
-        for name in [self.audio_names[index], self.tgt_audios[index]]:
-            wav_path = os.path.join(self.audio_root, name)
-            wav, cur_sample_rate = sf.read(wav_path)
-            wav = torch.from_numpy(wav).float()
-            fbank = logmelfilterbank(
-                wav.view(-1).cpu().numpy(), 16000
-            )
-            fbank = torch.from_numpy(fbank).float()
-            wav = self.postprocess(wav, cur_sample_rate)
-            wav_fbank.append(wav)
-            wav_fbank.append(fbank)
-        src_wav, src_fbank, tgt_wav, tgt_fbank = wav_fbank
-        return src_wav, src_fbank, tgt_wav, tgt_fbank
+        import torch
+        wav, cur_sample_rate = sf.read(self.wavs[index])
+        wav = torch.from_numpy(wav).float()
+        fbank = logmelfilterbank(
+            wav.view(-1).cpu().numpy(), 16000
+        )
+        fbank = torch.from_numpy(fbank).float()
+        wav = self.postprocess(wav, cur_sample_rate)
+        #     wav_fbank.append(wav)
+        #     wav_fbank.append(fbank)
+        # src_wav, src_fbank, tgt_wav, tgt_fbank = wav_fbank
+        # return wav, fbank, wav, fbank
+        return torch.ones(160000), torch.ones(1000,80), torch.ones(160000), torch.ones(1000,80),
 
     def __getitem__(self, index):
         src_wav, src_fbank, tgt_wav, tgt_fbank = self.get_audio(index)
-        spkembs = np.load(os.path.join(self.audio_root, self.tgt_spkembs[index]))
-        spkembs = torch.from_numpy(spkembs).float()
-        name = self.audio_names[index].replace("/", ".").replace(".wav", "") + "-" + self.tgt_audios[index].replace("/", ".").replace(".wav", "") + ".wav"
-        return {"id": index, "source": src_wav, "target": tgt_fbank, "spkembs": spkembs, "audio_name": name, "tgt_name": self.tgt_audios[index]}
-    
+        # spkembs = np.load(os.path.join(self.audio_root, self.tgt_spkembs[index]))
+        # spkembs = torch.from_numpy(spkembs).float()
+        # name = self.audio_names[index].replace("/", ".").replace(".wav", "") + "-" + self.tgt_audios[index].replace("/", ".").replace(".wav", "") + ".wav"
+        return {"id": 0, "source": src_wav, "target": tgt_fbank, "spkembs": torch.ones(512), "audio_name": 1, "tgt_name": 1}
+
     def __len__(self):
         return len(self.wav_sizes)
 
@@ -224,7 +256,7 @@ class SpeechToSpeechDataset(FairseqDataset):
             "ntokens": sum(audio_sizes),
             "target": collated_fbanks,
         }
-
+        # print(batch['dec_target'].shape)
         return batch
 
     def collater_audio(self, audios, audio_size):
