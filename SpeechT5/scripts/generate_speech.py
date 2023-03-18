@@ -163,7 +163,7 @@ def _main(cfg: DictConfig, output_file):
         )
         focus_rate = _calculate_focus_rete(attn)
         outs = outs.cpu().numpy()
-        audio_name = op.basename(sample['name'][0])
+        audio_name = op.basename(str(sample['name'][0]))
         np.save(op.join(cfg.common_eval.results_path, audio_name.replace(".wav", "-feats.npy")), outs)
 
         logging.info(
